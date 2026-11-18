@@ -8,43 +8,172 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
     body {
-      background: #17212b; color: #fff;
+      background: #e6e6e6; color: #111;
       display: flex; flex-direction: column; height: 100vh;
     }
     header {
-      background: #242f3d; padding: 14px; text-align: center;
-      font-weight: bold; border-bottom: 1px solid #0e1621;
+      position: relative;
+      background: #6b6b6b; color: #fff;
+      padding: 14px 48px 14px 14px;
+      text-align: center; font-weight: bold;
+      border-bottom: 1px solid #4d4d4d;
     }
+    #header-title {
+      display: inline-block; max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      vertical-align: middle;
+    }
+    #settings-btn {
+      position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; padding: 0;
+      border-radius: 50%; border: none;
+      background: transparent; color: #fff;
+      font-size: 20px; line-height: 1;
+      cursor: pointer; z-index: 2;
+    }
+    #settings-btn:hover { background: rgba(255,255,255,0.15); }
+
     #messages {
       flex: 1; padding: 15px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 10px;
     }
     .msg {
-      background: #2b5278; padding: 10px 14px; border-radius: 12px;
+      background: #f7f7f7; color: #111;
+      padding: 10px 14px; border-radius: 12px;
       max-width: 80%; align-self: flex-start; word-wrap: break-word;
     }
-    .msg.mine { background: #3e6b94; align-self: flex-end; }
-    .author { font-size: 12px; color: #64b5f6; margin-bottom: 4px; font-weight: bold; }
+    .msg.mine { background: #cfcfcf; color: #111; align-self: flex-end; }
+    .author { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold; }
     form {
-      display: flex; padding: 10px; background: #242f3d; gap: 8px;
+      display: flex; padding: 10px; background: #6b6b6b; gap: 8px;
     }
-    input {
+    form input {
       flex: 1; padding: 10px; border-radius: 8px; border: none;
-      background: #17212b; color: #fff; outline: none; font-size: 16px;
+      background: #fff; color: #111; outline: none; font-size: 16px;
     }
-    button {
+    form button {
       padding: 10px 18px; border: none; border-radius: 8px;
-      background: #5288c1; color: #fff; font-weight: bold; cursor: pointer;
+      background: #4d4d4d; color: #fff; font-weight: bold; cursor: pointer;
     }
+
+    /* ===== Панель настроек ===== */
+    .overlay {
+      position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+      background: rgba(0,0,0,0.45);
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+      z-index: 10;
+    }
+    .overlay.show { opacity: 1; pointer-events: auto; }
+
+    .settings {
+      position: fixed; top: 0; right: 0; height: 100%;
+      width: 280px; max-width: 85vw;
+      background: #fff; color: #111;
+      transform: translateX(100%); transition: transform .25s;
+      z-index: 11; padding: 16px;
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto; box-shadow: -6px 0 24px rgba(0,0,0,.25);
+    }
+    .settings.show { transform: translateX(0); }
+    .settings-head { display: flex; justify-content: space-between; align-items: center; }
+    .settings-head b { font-size: 18px; }
+    .settings-head button {
+      background: transparent; color: #111;
+      border: none; padding: 4px 10px; font-size: 18px; cursor: pointer;
+      border-radius: 6px;
+    }
+    .settings-head button:hover { background: #eee; }
+    .settings-label {
+      font-size: 12px; font-weight: bold; color: #666;
+      margin-bottom: 6px; text-transform: uppercase;
+    }
+    .options { display: flex; flex-direction: column; gap: 6px; }
+    .option {
+      text-align: left; background: #f1f1f1; color: #111;
+      padding: 10px 12px; border-radius: 8px;
+      border: 2px solid transparent;
+      font-size: 15px; cursor: pointer; font-weight: normal;
+    }
+    .option:hover { background: #e6e6e6; }
+    .option.active { border-color: #6b6b6b; }
+
+    /* ===== 4 темы (серая — базовая, без data-theme) ===== */
+    body[data-theme="telegram"] { background: #e6ebee; color: #111; }
+    body[data-theme="telegram"] header { background: #517da2; }
+    body[data-theme="telegram"] .msg { background: #fff; color: #111; }
+    body[data-theme="telegram"] .msg.mine { background: #eeffde; color: #111; }
+    body[data-theme="telegram"] .author { color: #517da2; }
+    body[data-theme="telegram"] form { background: #517da2; }
+    body[data-theme="telegram"] form input { background: #fff; color: #111; }
+    body[data-theme="telegram"] form button { background: #2f6fa8; }
+    body[data-theme="telegram"] .option.active { border-color: #517da2; }
+
+    body[data-theme="whatsapp"] { background: #ece5dd; color: #111; }
+    body[data-theme="whatsapp"] header { background: #075e54; }
+    body[data-theme="whatsapp"] .msg { background: #fff; color: #111; }
+    body[data-theme="whatsapp"] .msg.mine { background: #dcf8c6; color: #111; }
+    body[data-theme="whatsapp"] .author { color: #128c7e; }
+    body[data-theme="whatsapp"] form { background: #ededed; }
+    body[data-theme="whatsapp"] form input { background: #fff; color: #111; }
+    body[data-theme="whatsapp"] form button { background: #25d366; }
+    body[data-theme="whatsapp"] .option.active { border-color: #25d366; }
+
+    body[data-theme="vk"] { background: #edeef0; color: #000; }
+    body[data-theme="vk"] header { background: #5181b8; }
+    body[data-theme="vk"] .msg { background: #fff; color: #000; }
+    body[data-theme="vk"] .msg.mine { background: #c9e1f5; color: #000; }
+    body[data-theme="vk"] .author { color: #5181b8; }
+    body[data-theme="vk"] form { background: #fff; }
+    body[data-theme="vk"] form input { background: #f0f2f5; color: #000; }
+    body[data-theme="vk"] form button { background: #5181b8; }
+    body[data-theme="vk"] .option.active { border-color: #5181b8; }
+
+    body[data-theme="max"] { background: #1b1d2a; color: #f0f2ff; }
+    body[data-theme="max"] header { background: linear-gradient(135deg, #6a5cff 0%, #9b4dff 100%); }
+    body[data-theme="max"] .msg { background: #262a3d; color: #f0f2ff; }
+    body[data-theme="max"] .msg.mine { background: #4c6fff; color: #fff; }
+    body[data-theme="max"] .author { color: #a5b4ff; }
+    body[data-theme="max"] form { background: #1f2231; }
+    body[data-theme="max"] form input { background: #2a2e42; color: #f0f2ff; }
+    body[data-theme="max"] form button { background: #6a5cff; }
+    body[data-theme="max"] .settings { background: #1f2231; color: #f0f2ff; }
+    body[data-theme="max"] .settings-head button { color: #f0f2ff; }
+    body[data-theme="max"] .settings-head button:hover { background: #2a2e42; }
+    body[data-theme="max"] .settings-label { color: #a5b4ff; }
+    body[data-theme="max"] .option { background: #2a2e42; color: #f0f2ff; }
+    body[data-theme="max"] .option:hover { background: #333850; }
+    body[data-theme="max"] .option.active { border-color: #6a5cff; }
   </style>
 </head>
 <body>
-  <header id="header">Чат</header>
+  <header id="header">
+    <span id="header-title">Чат</span>
+    <button id="settings-btn" type="button" aria-label="Настройки">⚙</button>
+  </header>
+
   <div id="messages"></div>
+
   <form id="chat-form">
     <input type="text" id="msg-input" placeholder="Написать сообщение..." required autocomplete="off" />
     <button type="submit">➤</button>
   </form>
+
+  <div id="overlay" class="overlay"></div>
+
+  <aside id="settings" class="settings" aria-hidden="true">
+    <div class="settings-head">
+      <b id="settings-title">Настройки</b>
+      <button id="settings-close" type="button" aria-label="Закрыть">✕</button>
+    </div>
+    <div>
+      <div class="settings-label" id="label-language">Язык</div>
+      <div class="options" id="lang-options"></div>
+    </div>
+    <div>
+      <div class="settings-label" id="label-theme">Тема</div>
+      <div class="options" id="theme-options"></div>
+    </div>
+  </aside>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -60,54 +189,142 @@
       appId: "1:29553994797:web:4919b05ec65245221f5ca4"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const messagesRef = ref(db, "messages");
+    const lsGet    = (k)    => { try { return localStorage.getItem(k); }    catch (e) { return null; } };
+    const lsSet    = (k, v) => { try { localStorage.setItem(k, v); }       catch (e) {} };
+    const lsRemove = (k)    => { try { localStorage.removeItem(k); }       catch (e) {} };
+    const safePrompt = (m)  => { try { return window.prompt(m); }          catch (e) { return null; } };
 
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
+    /* очистка старой темы из предыдущих версий: теперь по умолчанию — серая */
+    if (lsGet("chat.ver") !== "3") {
+      lsRemove("chat.theme");
+      lsSet("chat.ver", "3");
     }
 
-    const userName = tg?.initDataUnsafe?.user?.first_name || prompt("Как тебя зовут?") || "Гость";
-    document.getElementById("header").textContent = `Чат • Вы: ${userName}`;
+    const tg = window.Telegram?.WebApp;
+    if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
 
-    const messagesDiv = document.getElementById("messages");
-    const form = document.getElementById("chat-form");
-    const input = document.getElementById("msg-input");
+    const savedLang = lsGet("chat.lang");
+    const tgName = (() => { try { return tg?.initDataUnsafe?.user?.first_name; } catch (e) { return null; } })();
+    const userName = tgName || safePrompt(savedLang === "en" ? "What's your name?" : "Как тебя зовут?") || "Гость";
+
+    const headerTitle   = document.getElementById("header-title");
+    const messagesDiv   = document.getElementById("messages");
+    const form          = document.getElementById("chat-form");
+    const input         = document.getElementById("msg-input");
+
+    const settingsBtn   = document.getElementById("settings-btn");
+    const settingsPanel = document.getElementById("settings");
+    const settingsClose = document.getElementById("settings-close");
+    const overlay       = document.getElementById("overlay");
+    const settingsTitle = document.getElementById("settings-title");
+    const langLabel     = document.getElementById("label-language");
+    const themeLabel    = document.getElementById("label-theme");
+    const langOptions   = document.getElementById("lang-options");
+    const themeOptions  = document.getElementById("theme-options");
+
+    const I18N = {
+      ru: {
+        chat: "Чат", you: "Вы", placeholder: "Написать сообщение...",
+        settings: "Настройки", language: "Язык", theme: "Тема",
+        themes: { max: "MAX", telegram: "Telegram", whatsapp: "WhatsApp", vk: "ВКонтакте" }
+      },
+      en: {
+        chat: "Chat", you: "You", placeholder: "Type a message...",
+        settings: "Settings", language: "Language", theme: "Theme",
+        themes: { max: "MAX", telegram: "Telegram", whatsapp: "WhatsApp", vk: "VK" }
+      }
+    };
+    const THEMES = ["max", "telegram", "whatsapp", "vk"];
+
+    let lang = lsGet("chat.lang");
+    if (!I18N[lang]) lang = "ru";
+
+    let theme = lsGet("chat.theme") || "";
+    if (theme && !THEMES.includes(theme)) theme = "";
+
+    const t = () => I18N[lang];
+
+    function renderOptions() {
+      const s = t();
+      document.documentElement.lang = lang;
+      headerTitle.textContent = `${s.chat} • ${s.you}: ${userName}`;
+      input.placeholder = s.placeholder;
+      settingsTitle.textContent = s.settings;
+      langLabel.textContent = s.language;
+      themeLabel.textContent = s.theme;
+      settingsBtn.setAttribute("aria-label", s.settings);
+
+      langOptions.innerHTML = "";
+      Object.keys(I18N).forEach((code) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option" + (code === lang ? " active" : "");
+        btn.textContent = code === "ru" ? "Русский" : "English";
+        btn.addEventListener("click", () => { lang = code; lsSet("chat.lang", lang); renderOptions(); });
+        langOptions.appendChild(btn);
+      });
+
+      themeOptions.innerHTML = "";
+      THEMES.forEach((id) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "option" + (id === theme ? " active" : "");
+        btn.textContent = s.themes[id];
+        btn.addEventListener("click", () => {
+          theme = id;
+          lsSet("chat.theme", theme);
+          document.body.dataset.theme = theme;
+          renderOptions();
+        });
+        themeOptions.appendChild(btn);
+      });
+    }
+
+    function openSettings()  { settingsPanel.classList.add("show");  overlay.classList.add("show");  }
+    function closeSettings() { settingsPanel.classList.remove("show"); overlay.classList.remove("show"); }
+
+    settingsBtn.addEventListener("click", openSettings);
+    settingsClose.addEventListener("click", closeSettings);
+    overlay.addEventListener("click", closeSettings);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSettings(); });
+
+    /* Firebase */
+    let messagesRef = null;
+    try {
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      messagesRef = ref(db, "messages");
+
+      onChildAdded(messagesRef, (snapshot) => {
+        const data = snapshot.val();
+        const msgEl = document.createElement("div");
+        msgEl.className = data.name === userName ? "msg mine" : "msg";
+
+        const authorEl = document.createElement("div");
+        authorEl.className = "author";
+        authorEl.textContent = data.name;
+
+        const textEl = document.createElement("div");
+        textEl.textContent = data.text;
+
+        msgEl.append(authorEl, textEl);
+        messagesDiv.appendChild(msgEl);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      });
+    } catch (e) {
+      console.warn("Firebase init failed:", e);
+    }
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const text = input.value.trim();
       if (!text) return;
-
-      push(messagesRef, {
-        name: userName,
-        text: text,
-        time: Date.now()
-      });
-
+      if (messagesRef) push(messagesRef, { name: userName, text: text, time: Date.now() });
       input.value = "";
     });
 
-    onChildAdded(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-
-      const msgEl = document.createElement("div");
-      msgEl.className = data.name === userName ? "msg mine" : "msg";
-
-      const authorEl = document.createElement("div");
-      authorEl.className = "author";
-      authorEl.textContent = data.name;
-
-      const textEl = document.createElement("div");
-      textEl.textContent = data.text;
-
-      msgEl.append(authorEl, textEl);
-      messagesDiv.appendChild(msgEl);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
+    if (theme) document.body.dataset.theme = theme;
+    renderOptions();
   </script>
 </body>
 </html>
