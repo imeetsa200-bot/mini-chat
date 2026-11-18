@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini Chat</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body {
+      background: #17212b; color: #fff;
+      display: flex; flex-direction: column; height: 100vh;
+    }
+    header {
+      background: #242f3d; padding: 14px; text-align: center;
+      font-weight: bold; border-bottom: 1px solid #0e1621;
+    }
+    #messages {
+      flex: 1; padding: 15px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .msg {
+      background: #2b5278; padding: 10px 14px; border-radius: 12px;
+      max-width: 80%; align-self: flex-start; word-wrap: break-word;
+    }
+    .msg.mine { background: #3e6b94; align-self: flex-end; }
+    .author { font-size: 12px; color: #64b5f6; margin-bottom: 4px; font-weight: bold; }
+    form {
+      display: flex; padding: 10px; background: #242f3d; gap: 8px;
+    }
+    input {
+      flex: 1; padding: 10px; border-radius: 8px; border: none;
+      background: #17212b; color: #fff; outline: none; font-size: 16px;
+    }
+    button {
+      padding: 10px 18px; border: none; border-radius: 8px;
+      background: #5288c1; color: #fff; font-weight: bold; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header id="header">Чат</header>
+  <div id="messages"></div>
+  <form id="chat-form">
+    <input type="text" id="msg-input" placeholder="Написать сообщение..." required autocomplete="off" />
+    <button type="submit">➤</button>
+  </form>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBvXg3676wsVVYv5K1LVy5hb_Zw8C5TT18",
+      authDomain: "tg-mini-chat.firebaseapp.com",
+      databaseURL: "https://tg-mini-chat-default-rtdb.firebaseio.com",
+      projectId: "tg-mini-chat",
+      storageBucket: "tg-mini-chat.firebasestorage.app",
+      messagingSenderId: "29553994797",
+      appId: "1:29553994797:web:4919b05ec65245221f5ca4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, "messages");
+
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const userName = tg?.initDataUnsafe?.user?.first_name || prompt("Как тебя зовут?") || "Гость";
+    document.getElementById("header").textContent = `Чат • Вы: ${userName}`;
+
+    const messagesDiv = document.getElementById("messages");
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("msg-input");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      push(messagesRef, {
+        name: userName,
+        text: text,
+        time: Date.now()
+      });
+
+      input.value = "";
+    });
+
+    onChildAdded(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+
+      const msgEl = document.createElement("div");
+      msgEl.className = data.name === userName ? "msg mine" : "msg";
+
+      const authorEl = document.createElement("div");
+      authorEl.className = "author";
+      authorEl.textContent = data.name;
+
+      const textEl = document.createElement("div");
+      textEl.textContent = data.text;
+
+      msgEl.append(authorEl, textEl);
+      messagesDiv.appendChild(msgEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+  </script>
+</body>
+</html>
